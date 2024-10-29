@@ -31,32 +31,49 @@ public class NominaService {
         return "Empleado registrado con éxito.";
     }
 
-    public Double calcularIndividual(String id, int dias) {
+    public PayrollResponse calcularIndividual(String id, int dias) {
         Empleado empleado = empleados.stream()
                 .filter(emp -> emp.getId().equals(id))
                 .findFirst()
-                .orElse(null);
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado."));
 
-        if (empleado == null) {
-            throw new RuntimeException("Empleado no encontrado.");
-        }
+        double salarioDiario = empleado.getSalario();
+        double grossSalary = salarioDiario * dias;
+        double isrRetention = grossSalary * calculateISR(salarioDiario);
+        double totalAPagar = grossSalary - isrRetention;
 
-        double grossSalary = empleado.getSalario() * dias;
-        double isrRetention = grossSalary * calculateISR(empleado.getSalario());
-        return grossSalary - isrRetention;
+        return new PayrollResponse(
+                empleado.getId(),
+                empleado.getNombre(),
+                dias,
+                salarioDiario,
+                isrRetention,
+                totalAPagar
+        );
     }
 
-    public List<Double> calcularGrupo(int dias) {
-        List<Double> payrolls = new ArrayList<>();
+    public List<PayrollResponse> calcularGrupo(int dias) {
+        List<PayrollResponse> payrolls = new ArrayList<>();
 
         for (Empleado empleado : empleados) {
-            double grossSalary = empleado.getSalario() * dias;
-            double isrRetention = grossSalary * calculateISR(empleado.getSalario());
-            payrolls.add(grossSalary - isrRetention);
+            double salarioDiario = empleado.getSalario();
+            double grossSalary = salarioDiario * dias;
+            double isrRetention = grossSalary * calculateISR(salarioDiario);
+            double totalAPagar = grossSalary - isrRetention;
+
+            payrolls.add(new PayrollResponse(
+                    empleado.getId(),
+                    empleado.getNombre(),
+                    dias,
+                    salarioDiario,
+                    isrRetention,
+                    totalAPagar
+            ));
         }
 
         return payrolls;
     }
+
 
     public List<Empleado> listarEmpleados() {
         return empleados;

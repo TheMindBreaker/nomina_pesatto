@@ -34,10 +34,10 @@ public class NominaController {
         }
     }
 
-    @GetMapping("/calcularInd/{id}/{dias}")
+    @GetMapping("/calcularIndividual/{id}/{dias}")
     public ResponseEntity<ApiResponse<?>> calcularIndividual(@PathVariable String id, @PathVariable int dias) {
         try {
-            Double payroll = nominaService.calcularIndividual(id, dias);
+            PayrollResponse payroll = nominaService.calcularIndividual(id, dias);
             return ResponseEntity.ok(new ApiResponse<>(payroll, "Calculation successful", null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -45,16 +45,17 @@ public class NominaController {
         }
     }
 
-    @GetMapping("/calcular/{dias}")
+    @GetMapping("/calcularGrupo/{dias}")
     public ResponseEntity<ApiResponse<?>> calcularGrupo(@PathVariable int dias) {
         try {
-            List<Double> payrolls = nominaService.calcularGrupo(dias);
+            List<PayrollResponse> payrolls = nominaService.calcularGrupo(dias);
             return ResponseEntity.ok(new ApiResponse<>(payrolls, "Group calculation successful", null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponse<>(null, null, e.getMessage()));
         }
     }
+
 
     @GetMapping("/todos")
     public ResponseEntity<ApiResponse<?>> getAllEmployees() {
