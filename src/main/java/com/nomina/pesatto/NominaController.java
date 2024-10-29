@@ -1,6 +1,9 @@
 package com.nomina.pesatto;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,25 +23,48 @@ public class NominaController {
         this.nominaService = nominaService;
     }
 
-    @PostMapping("/registrarEmpleado")
-    public ResponseEntity<?> registrarEmpleado(@RequestBody EmpleadoDTO empleado) {
-        return ResponseEntity.ok(nominaService.registrarEmpleado(empleado));
+    @PostMapping("/registrar")
+    public ResponseEntity<ApiResponse<?>> registrarEmpleado(@RequestBody EmpleadoDTO empleado) {
+        try {
+            String message = nominaService.registrarEmpleado(empleado);
+            return ResponseEntity.ok(new ApiResponse<>(null, message, null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>(null, null, e.getMessage()));
+        }
     }
-    
 
-    @GetMapping("/calcularIndividual/{id}/{dias}")
-    public ResponseEntity<?> calcularIndividual(@PathVariable String id, @PathVariable int dias) {
-        return ResponseEntity.ok(nominaService.calcularIndividual(id, dias));
+    @GetMapping("/calcularInd/{id}/{dias}")
+    public ResponseEntity<ApiResponse<?>> calcularIndividual(@PathVariable String id, @PathVariable int dias) {
+        try {
+            Double payroll = nominaService.calcularIndividual(id, dias);
+            return ResponseEntity.ok(new ApiResponse<>(payroll, "Calculation successful", null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>(null, null, e.getMessage()));
+        }
     }
 
-    @GetMapping("/calcularGrupo/{dias}")
-    public ResponseEntity<?> calcularGrupo(@PathVariable int dias) {
-        return ResponseEntity.ok(nominaService.calcularGrupo(dias));
+    @GetMapping("/calcular/{dias}")
+    public ResponseEntity<ApiResponse<?>> calcularGrupo(@PathVariable int dias) {
+        try {
+            List<Double> payrolls = nominaService.calcularGrupo(dias);
+            return ResponseEntity.ok(new ApiResponse<>(payrolls, "Group calculation successful", null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>(null, null, e.getMessage()));
+        }
     }
 
     @GetMapping("/todos")
-    public ResponseEntity<?> listarEmpleados() {
-        return ResponseEntity.ok(nominaService.listarEmpleados());
+    public ResponseEntity<ApiResponse<?>> getAllEmployees() {
+        try {
+            List<Empleado> employees = nominaService.listarEmpleados();
+            return ResponseEntity.ok(new ApiResponse<>(employees, "Employees retrieved successfully", null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>(null, null, e.getMessage()));
+        }
     }
 
     @GetMapping("/guardar")

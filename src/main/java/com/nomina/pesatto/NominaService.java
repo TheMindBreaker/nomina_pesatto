@@ -15,36 +15,47 @@ public class NominaService {
     private static final String FILE_PATH = "empleados.json"; // Define the path for JSON file
     private final ObjectMapper objectMapper = new ObjectMapper(); // Initialize ObjectMapper
 
+
+    // ISR retention rates (example values)
+    private double calculateISR(double salary) {
+        if (salary <= 7735.0) return 0.0192;  // 1.92%
+        if (salary <= 65651.07) return 0.064; // 6.4%
+        if (salary <= 115375.9) return 0.1088; // 10.88%
+        if (salary <= 134119.41) return 0.16; // 16%
+        return 0.35; // 35% for higher salaries
+    }
+
     public String registrarEmpleado(EmpleadoDTO empleadoDTO) {
         Empleado empleado = new Empleado(empleadoDTO.getId(), empleadoDTO.getNombre(), empleadoDTO.getSalario());
         empleados.add(empleado);
         return "Empleado registrado con éxito.";
     }
 
-    public String calcularIndividual(String id, int dias) {
+    public Double calcularIndividual(String id, int dias) {
         Empleado empleado = empleados.stream()
                 .filter(emp -> emp.getId().equals(id))
                 .findFirst()
                 .orElse(null);
 
         if (empleado == null) {
-            return "Empleado no encontrado.";
+            throw new RuntimeException("Empleado no encontrado.");
         }
 
-        double salarioTotal = empleado.getSalario() * dias;
-        return "La nómina de " + empleado.getNombre() + " para " + dias + " días es: $" + salarioTotal;
+        double grossSalary = empleado.getSalario() * dias;
+        double isrRetention = grossSalary * calculateISR(empleado.getSalario());
+        return grossSalary - isrRetention;
     }
 
-    public String calcularGrupo(int dias) {
-        StringBuilder resultado = new StringBuilder("Nómina de todos los empleados para " + dias + " días:\n");
+    public List<Double> calcularGrupo(int dias) {
+        List<Double> payrolls = new ArrayList<>();
 
         for (Empleado empleado : empleados) {
-            double salarioTotal = empleado.getSalario() * dias;
-            resultado.append("Empleado: ").append(empleado.getNombre())
-                     .append(", Nómina: $").append(salarioTotal).append("\n");
+            double grossSalary = empleado.getSalario() * dias;
+            double isrRetention = grossSalary * calculateISR(empleado.getSalario());
+            payrolls.add(grossSalary - isrRetention);
         }
 
-        return resultado.toString();
+        return payrolls;
     }
 
     public List<Empleado> listarEmpleados() {
